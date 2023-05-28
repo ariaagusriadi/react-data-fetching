@@ -1,0 +1,24 @@
+{
+  "name": "react-data-fetching",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@chakra-ui/react": "^2.6.1",
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@tanstack/react-query": "^4.29.7",
+    "axios": "^1.4.0",
+    "formik": "^2.3.2",
+    "framer-motion": "^10.12.16",
+    "next": "^13.4.4",
+    "sweetalert2": "^11.7.5",
+    "sweetalert2-react-content": "^5.0.7",
+    "yup": "^1.2.0"
+  }
+}
