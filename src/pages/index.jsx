@@ -19,25 +19,33 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { DarkMode } from "./DarkMode";
-import { useFetchProducts } from "@/features/product/useFetchProducts";
 import { useFormik } from "formik";
-import { useCreateProduct } from "@/features/product/useCreateProduct";
-import { useMutation } from "@tanstack/react-query";
-import { axiosInstance } from "@/lib/axios";
-import { useDeleteProduct } from "@/features/product/useDeleteProduct";
+import {
+  useCreateProduct,
+  useDeleteProduct,
+  useEditProduct,
+  useFetchProducts,
+} from "@/features/product";
 
 export default function Home() {
   // swet alert
   const MySwal = withReactContent(Swal);
 
+  //  toast file
+  const toast = useToast();
+
   const {
     data,
     isLoading: productsIsLoading,
     refetch: refetchProducts,
-  } = useFetchProducts();
-
-  //  toast file
-  const toast = useToast();
+  } = useFetchProducts({
+    onError: () => {
+      toast({
+        title: "Ada Kesalahan Terjadi",
+        status: "error",
+      });
+    },
+  });
 
   // form logic
   const formik = useFormik({
@@ -46,24 +54,48 @@ export default function Home() {
       price: "",
       description: "",
       image: "",
+      id: "",
     },
     onSubmit: () => {
-      const { name, price, description, image } = formik.values;
-      createProduct({
-        name,
-        price: parseInt(price),
-        description,
-        image,
-      });
-      formik.setFieldValue("name", "");
-      formik.setFieldValue("price", "");
-      formik.setFieldValue("description", "");
-      formik.setFieldValue("image", "");
+      const { name, price, description, image, id } = formik.values;
 
-      toast({
-        title: "Product added",
-        status: "success",
-      });
+      if (id) {
+        // melakukan PATCH / products/{id}
+        editProduct({
+          name,
+          price: parseInt(price),
+          description,
+          image,
+          id,
+        });
+
+        formik.setFieldValue("name", "");
+        formik.setFieldValue("price", "");
+        formik.setFieldValue("description", "");
+        formik.setFieldValue("image", "");
+        formik.setFieldValue("id", "");
+        toast({
+          title: "Product Edit",
+          status: "warning",
+        });
+      } else {
+        createProduct({
+          name,
+          price: parseInt(price),
+          description,
+          image,
+        });
+        formik.setFieldValue("name", "");
+        formik.setFieldValue("price", "");
+        formik.setFieldValue("description", "");
+        formik.setFieldValue("image", "");
+        formik.setFieldValue("id", "");
+
+        toast({
+          title: "Product added",
+          status: "success",
+        });
+      }
     },
   });
 
@@ -104,12 +136,37 @@ export default function Home() {
     });
   };
 
+  // edit product
+  const onEditClick = (product) => {
+    formik.setFieldValue("id", product.id);
+    formik.setFieldValue("name", product.name);
+    formik.setFieldValue("price", product.price);
+    formik.setFieldValue("description", product.description);
+    formik.setFieldValue("image", product.image);
+  };
+
+  const { mutate: editProduct, isLoading: editProductIsLoading } =
+    useEditProduct({
+      onSuccess: () => {
+        refetchProducts();
+      },
+    });
+
   //  render product
   const renderProducts = () => {
     return data?.data.map((product) => {
       return (
         <Tr key={product.id}>
           <Td>{product.id}</Td>
+          <Td>
+            <Button
+              onClick={() => onEditClick(product)}
+              colorScheme="cyan"
+              size="sm"
+            >
+              Edit {product.id}
+            </Button>
+          </Td>
           <Td>
             <Button
               onClick={() => confirmationDelete(product.id)}
@@ -149,7 +206,7 @@ export default function Home() {
             <Thead>
               <Tr>
                 <Th>Id</Th>
-                <Th>Action</Th>
+                <Th colSpan={2}>Action</Th>
                 <Th>Name</Th>
                 <Th>Price</Th>
                 <Th>Description</Th>
@@ -162,6 +219,14 @@ export default function Home() {
 
           <form onSubmit={formik.handleSubmit}>
             <VStack spacing={3} mb={5}>
+              <FormControl>
+                <FormLabel>Product Id</FormLabel>
+                <Input
+                  name="id"
+                  value={formik.values.id}
+                  onChange={handleFormInput}
+                />
+              </FormControl>
               <FormControl>
                 <FormLabel>Product Name</FormLabel>
                 <Input
@@ -194,7 +259,7 @@ export default function Home() {
                   onChange={handleFormInput}
                 />
               </FormControl>
-              {createProductsIsLoading ? (
+              {createProductsIsLoading || editProductIsLoading ? (
                 <Spinner />
               ) : (
                 <Button type="submit">Submit Product</Button>
