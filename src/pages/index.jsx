@@ -17,6 +17,7 @@ import {
   VStack,
   Button,
   useToast,
+  FormErrorMessage,
 } from "@chakra-ui/react";
 import { DarkMode } from "./DarkMode";
 import { useFormik } from "formik";
@@ -26,6 +27,8 @@ import {
   useEditProduct,
   useFetchProducts,
 } from "@/features/product";
+
+import * as yup from "yup";
 
 export default function Home() {
   // swet alert
@@ -97,6 +100,12 @@ export default function Home() {
         });
       }
     },
+    validationSchema: yup.object().shape({
+      name: yup.string().required("name tidak boleh kosong"),
+      price: yup.number().required("price tidak boleh kosong"),
+      description: yup.string().required("description tidak boleh kosong"),
+      image: yup.string().required("image tidak boleh kosong"),
+    }),
   });
 
   const handleFormInput = (event) => {
@@ -225,39 +234,43 @@ export default function Home() {
                   name="id"
                   value={formik.values.id}
                   onChange={handleFormInput}
-                />
+                disabled />
               </FormControl>
-              <FormControl>
+              <FormControl isInvalid={formik.errors.name}>
                 <FormLabel>Product Name</FormLabel>
                 <Input
                   name="name"
                   value={formik.values.name}
                   onChange={handleFormInput}
                 />
+                <FormErrorMessage>{formik.errors.name}</FormErrorMessage>
               </FormControl>
-              <FormControl>
+              <FormControl isInvalid={formik.errors.price}>
                 <FormLabel>Price</FormLabel>
                 <Input
                   name="price"
                   value={formik.values.price}
                   onChange={handleFormInput}
                 />
+                <FormErrorMessage>{formik.errors.price}</FormErrorMessage>
               </FormControl>
-              <FormControl>
+              <FormControl isInvalid={formik.errors.description}>
                 <FormLabel>Description</FormLabel>
                 <Input
                   name="description"
                   value={formik.values.description}
                   onChange={handleFormInput}
                 />
+                <FormErrorMessage>{formik.errors.description}</FormErrorMessage>
               </FormControl>
-              <FormControl>
+              <FormControl isInvalid={formik.errors.image}>
                 <FormLabel>Image</FormLabel>
                 <Input
                   name="image"
                   value={formik.values.image}
                   onChange={handleFormInput}
                 />
+                <FormErrorMessage>{formik.errors.image}</FormErrorMessage>
               </FormControl>
               {createProductsIsLoading || editProductIsLoading ? (
                 <Spinner />
